@@ -17,6 +17,10 @@
 
 ## Requisitos
 
+---
+## Documentacion
+[Link al docs](https://docs.google.com/document/d/10PWoX6MbLVNgIVu5Lw9Z3764G7nASzMNs2OlJxMfQqk/edit?usp=sharing)
+<img width="708" height="791" alt="image" src="https://github.com/user-attachments/assets/385985b7-04d9-4d46-91f4-30802279d4e1" />
 
 ---
 
