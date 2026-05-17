@@ -1,6 +1,6 @@
 # Investigacion de Bases de Datos II 
 
-**Sistema de monitoreo de métricas**
+**Por definir**
 
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![Apache Kafka](https://img.shields.io/badge/Apache_Kafka-231F20?style=for-the-badge&logo=apachekafka&logoColor=white)](https://kafka.apache.org)
