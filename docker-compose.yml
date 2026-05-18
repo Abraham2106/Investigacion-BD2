@@ -117,8 +117,20 @@ services:
     volumes:
       - kafka-data:/var/lib/kafka/data
 
+  # Contenedor de Grafana (Capa de Visualización y Monitoreo)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-storage:/var/lib/grafana
+
 volumes:
   kudu-master-1:
   kudu-tserver-1:
   kudu-tserver-2:
   kafka-data:
+  grafana-storage:
