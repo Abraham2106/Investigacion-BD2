@@ -260,6 +260,92 @@ La persistencia definitiva y analítica en Apache Kudu requiere la definición r
 | **Columna de Sharding** | `order_id` |
 | **Número de Tablets** | `3` |
 
+---
+
+### 3.6. Consideraciones Técnicas: PySpark como Puente Python ↔ Kudu
+
+El script `03_kudu_drain.py` utiliza **PySpark** para interactuar con Kudu. A continuación se detallan las restricciones de versión, el patrón de DDL y el patrón de escritura que deben respetarse estrictamente en la implementación.
+
+#### 3.6.1. Versión Requerida
+
+| Componente | Versión | Motivo |
+| :--- | :--- | :--- |
+| `pyspark` | `3.5.1` | Única versión de PySpark compilada sobre Scala 2.12, requerida por el conector Kudu |
+| `kudu-spark3_2.12` | `1.17.0` | Conector oficial de Kudu para Spark 3.x / Scala 2.12, descargado automáticamente desde Maven |
+| Java / JVM | 11+ | Requerida en el sistema operativo; PySpark la inicia automáticamente como proceso de fondo |
+
+> [!CAUTION]
+> No instalar `pyspark==4.x`. Usa Scala 2.13, que es **binariamente incompatible** con `kudu-spark3_2.12` y produce un `java.lang.NoClassDefFoundError: scala/Serializable` en tiempo de ejecución.
+
+#### 3.6.2. Instalación del Entorno
+
+Dado que Ubuntu 22.04+ protege el entorno Python del sistema (PEP 668), se debe usar un entorno virtual:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install pyspark==3.5.1
+```
+
+#### 3.6.3. Patrón de Inicialización de Spark
+
+```python
+from pyspark.sql import SparkSession
+
+spark = SparkSession.builder \
+    .appName("KuduDrainer") \
+    .config("spark.jars.packages", "org.apache.kudu:kudu-spark3_2.12:1.17.0") \
+    .config("spark.driver.host", "localhost") \
+    .getOrCreate()
+```
+
+El parámetro `spark.jars.packages` le indica a Spark que descargue el JAR del conector desde Maven Central en el primer arranque. Las ejecuciones subsecuentes lo toman del caché local (`~/.ivy2/jars`), por lo que son instantáneas.
+
+#### 3.6.4. Patrón de Creación de Tabla (DDL) — RF-13
+
+La tabla se crea usando Spark SQL estándar con `USING kudu`. **No se requieren constructores Java verbosos** (`ColumnSchemaBuilder`, etc.):
+
+```python
+spark.sql(f"""
+    CREATE TABLE IF NOT EXISTS orders (
+        order_id    STRING,
+        user_id     STRING,
+        country_code STRING,
+        product     STRING,
+        amount      DOUBLE,
+        status      STRING,
+        timestamp   BIGINT
+    )
+    USING kudu
+    OPTIONS (
+        'kudu.master'     = 'localhost:7051,localhost:7151,localhost:7251',
+        'kudu.table'      = 'orders',
+        'kudu.keyColumns' = 'order_id',
+        'kudu.numTablets' = '3'
+    )
+""")
+```
+
+#### 3.6.5. Patrón de Escritura Idempotente (Upsert) — RF-12
+
+```python
+df.write \
+    .format("org.apache.kudu.spark.kudu") \
+    .option("kudu.master", "localhost:7051,localhost:7151,localhost:7251") \
+    .option("kudu.table", "orders") \
+    .option("kudu.operation", "upsert") \
+    .mode("append") \
+    .save()
+```
+
+La opción `kudu.operation = upsert` garantiza que si Kafka reenvía el mismo `order_id`, Kudu actualizará el registro existente en lugar de duplicarlo (RF-12).
+
+#### 3.6.6. Consideraciones de Ciclo de Vida del Cluster
+
+- Al iniciar el script por primera vez tras un `docker compose restart`, el cluster Kudu tarda **~10-15 segundos** en elegir un líder Raft. El driver de Spark emite advertencias `Unable to find the leader master...` durante este período, lo cual es **normal y esperado**.
+- Si el script de Python es interrumpido abruptamente (`Ctrl+C`), puede dejar sockets TCP huérfanos en el cluster de Kudu. Si el siguiente intento falla con errores de red Netty (`SslHandler.unwrap`), se debe reiniciar el cluster: `KUDU_QUICKSTART_IP=$(hostname -I | awk '{print $1}') docker compose restart`.
+
+
 
 
 

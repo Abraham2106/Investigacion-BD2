@@ -128,3 +128,23 @@ Se usará para mostrar dashboards gráficos con los resultados obtenidos del sis
 ### 3.5. Infraestructura de Prototipo Local: Docker Compose
 
 Se usará para levantar todo este ecosistema (Kafka, Ignite, Kudu, Grafana) en un entorno local con un solo comando, evitando configuraciones complejas para que puedas concentrarte puramente en programar y aprender.
+
+### 3.6. Puente de Datos Python ↔ Kudu: PySpark
+
+Para conectar Python con Apache Kudu se utiliza **PySpark 3.5.1** como puente de comunicación, en lugar de compilar las librerías nativas de C++ del cliente oficial de Kudu.
+
+PySpark arranca una **Java Virtual Machine (JVM)** en segundo plano y se comunica con ella mediante el protocolo **Py4J** (un gateway de sockets TCP local). Esto permite que el código Python invoque directamente el conector oficial `kudu-spark3_2.12`, que se descarga automáticamente desde Maven Central la primera vez que se ejecuta el script.
+
+```
+Python Script  →  PySpark (Py4J Gateway)  →  JVM  →  kudu-spark3 JAR  →  Kudu Cluster (Docker)
+```
+
+**¿Por qué PySpark 3.5.1 específicamente?**
+La compatibilidad binaria de Scala es estricta. El conector `kudu-spark3_2.12` requiere un runtime compilado con **Scala 2.12**. PySpark 3.5.x usa Scala 2.12, mientras que PySpark 4.x usa Scala 2.13, lo que produce una ruptura de clases en tiempo de ejecución (`NoClassDefFoundError`).
+
+| Versión PySpark | Scala | Compatible con `kudu-spark3_2.12` |
+| :--- | :--- | :---: |
+| `3.5.1` (requerida) | 2.12 | Sí |
+| `4.x` | 2.13 | No |
+
+**Uso en el pipeline:** PySpark se utiliza exclusivamente en el script `03_kudu_drain.py` (capa fría), no en la capa caliente (Ignite) ni en la ingesta (FastAPI). Su rol es recibir los eventos `APPROVED` del topic `orders-processed` de Kafka y persistirlos de forma idempotente en Kudu mediante `upsert`.
