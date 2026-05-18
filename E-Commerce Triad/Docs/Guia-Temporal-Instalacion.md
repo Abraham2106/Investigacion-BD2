@@ -51,6 +51,6 @@ El contenedor de Apache Ignite se levanta automáticamente con el comando `docke
 
 Para interactuar con Ignite desde Python se debe de usar/instalar el cliente de Python, pyignite, es un cliente thin que hace que se haga la interaccion por medio de protocolos binarios.
 ```bash
-# Asegúrate de tener tu entorno virtual activo
+# Entorno virtual activo 
 pip install pyignite
 ```
