@@ -42,3 +42,15 @@ docker exec -it $(docker ps -aqf "name=kudu-master-1") /bin/bash
   Si el cluster está totalmente operativo, al final del reporte verás un mensaje de aprobación que dice **`OK`**.
 
 ---
+
+## 2. Apache Ignite (Caché In-Memory)
+
+El contenedor de Apache Ignite se levanta automáticamente con el comando `docker compose up -d` y expone el puerto `10800`.
+
+### 2.1. Instalar el cliente de Python (Thin Client)
+
+Para interactuar con Ignite desde Python se debe de usar/instalar el cliente de Python, pyignite, es un cliente thin que hace que se haga la interaccion por medio de protocolos binarios.
+```bash
+# Asegúrate de tener tu entorno virtual activo
+pip install pyignite
+```
