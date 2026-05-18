@@ -1,4 +1,4 @@
-# Guia Temporal de Instalacion
+# Guía de Instalación y Despliegue
 
 ## 1. Apache Kudu (Quickstart Docker)
 

@@ -1,4 +1,4 @@
-# Requerimientos — E-Commerce Triad Pipeline
+# Especificación de Requerimientos — E-Commerce Triad Pipeline
 
 Sistema de E-Commerce basado en **FastAPI + Apache Kafka + Apache Ignite + PySpark + Apache Kudu**, diseñado para ingerir, procesar y almacenar pedidos en tiempo real, detectando fraudes y filtrando zonas de riesgo.
 

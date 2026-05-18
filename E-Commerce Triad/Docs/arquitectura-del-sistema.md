@@ -1,4 +1,4 @@
-# E-Commerce Triad
+# Arquitectura del Sistema — E-Commerce Triad Pipeline
 Este proyecto hace uso de Apache Kafka, Apache Ignite, PySpark y Apache Kudu para crear un sistema de E-Commerce. Los datos ingestados serán producidos por un script de Python que simula la actividad de un sitio de E-Commerce, generando datos de ventas, productos, zonas, etc.
 Este sistema debe poder clasificar los datos por zonas y precio para así poder filtrar y banear los pedidos de zonas inseguras y con precios sospechosos.
 
