@@ -24,13 +24,11 @@ docker exec -it $(docker ps -aqf "name=kudu-master-1") /bin/bash
   ```bash
   docker ps
   ```
-  *(Debería ver 3 contenedores de master (`kudu-master-1`, `2`, `3`) y 5 contenedores de tablet servers (`kudu-tserver-1` al `5`) con el estatus `Up`)*.
+  *(Debería ver 1 contenedor de master (`kudu-master-1`) y 2 contenedores de tablet servers (`kudu-tserver-1` y `kudu-tserver-2`) con el estatus `Up`)*.
 
 * **2. Interfaz Web (Consola Gráfica de Kudu Master):**
-  Dirijase a estas direcciones 
+  Diríjase a la dirección del Master:
   * **Master 1**: `http://localhost:8051`
-  * **Master 2**: `http://localhost:8151`
-  * **Master 3**: `http://localhost:8251`
 
   En esta interfaz web podrás ver:
   - Las tablas y esquemas de base de datos creados.
@@ -39,7 +37,7 @@ docker exec -it $(docker ps -aqf "name=kudu-master-1") /bin/bash
 
 * **3. Verificación de salud interna (Kudu CLI `ksck`):**
   ```bash
-  docker exec -it $(docker ps -aqf "name=kudu-master-1") kudu cluster ksck kudu-master-1:7051,kudu-master-2:7151,kudu-master-3:7251
+  docker exec -it $(docker ps -aqf "name=kudu-master-1") kudu cluster ksck kudu-master-1:7051
   ```
   Si el cluster está totalmente operativo, al final del reporte verás un mensaje de aprobación que dice **`OK`**.
 

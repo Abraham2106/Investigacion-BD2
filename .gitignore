@@ -1,2 +1,4 @@
-.venv
-.test
+.venv/
+test /
+./test/
+test.log

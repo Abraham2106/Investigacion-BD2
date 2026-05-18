@@ -25,7 +25,7 @@ services:
     volumes:
       - kudu-master-1:/var/lib/kudu
     environment:
-      - KUDU_MASTERS=kudu-master-1:7051,kudu-master-2:7151,kudu-master-3:7251
+      - KUDU_MASTERS=kudu-master-1:7051
       # TODO: Use `host.docker.internal` instead of KUDU_QUICKSTART_IP when it
       # works on Linux (https://github.com/docker/for-linux/issues/264)
       - >
@@ -39,52 +39,10 @@ services:
         --use_hybrid_clock=false
         --unlock_unsafe_flags=true
 
-  kudu-master-2:
-    image: apache/kudu:${KUDU_QUICKSTART_VERSION:-latest}
-    ports:
-      - "7151:7151"
-      - "8151:8151"
-    command: ["master"]
-    volumes:
-      - kudu-master-2:/var/lib/kudu
-    environment:
-      - KUDU_MASTERS=kudu-master-1:7051,kudu-master-2:7151,kudu-master-3:7251
-      - >
-        MASTER_ARGS=--fs_wal_dir=/var/lib/kudu/master
-        --rpc_bind_addresses=0.0.0.0:7151
-        --rpc_advertised_addresses=${KUDU_QUICKSTART_IP}:7151
-        --webserver_port=8151
-        --webserver_advertised_addresses=${KUDU_QUICKSTART_IP}:8151
-        --webserver_doc_root=/opt/kudu/www
-        --stderrthreshold=0
-        --use_hybrid_clock=false
-        --unlock_unsafe_flags=true
-  kudu-master-3:
-    image: apache/kudu:${KUDU_QUICKSTART_VERSION:-latest}
-    ports:
-      - "7251:7251"
-      - "8251:8251"
-    command: ["master"]
-    volumes:
-      - kudu-master-3:/var/lib/kudu
-    environment:
-      - KUDU_MASTERS=kudu-master-1:7051,kudu-master-2:7151,kudu-master-3:7251
-      - >
-        MASTER_ARGS=--fs_wal_dir=/var/lib/kudu/master
-        --rpc_bind_addresses=0.0.0.0:7251
-        --rpc_advertised_addresses=${KUDU_QUICKSTART_IP}:7251
-        --webserver_port=8251
-        --webserver_advertised_addresses=${KUDU_QUICKSTART_IP}:8251
-        --webserver_doc_root=/opt/kudu/www
-        --stderrthreshold=0
-        --use_hybrid_clock=false
-        --unlock_unsafe_flags=true
   kudu-tserver-1:
     image: apache/kudu:${KUDU_QUICKSTART_VERSION:-latest}
     depends_on:
       - kudu-master-1
-      - kudu-master-2
-      - kudu-master-3
     ports:
       - "7050:7050"
       - "8050:8050"
@@ -92,7 +50,7 @@ services:
     volumes:
       - kudu-tserver-1:/var/lib/kudu
     environment:
-      - KUDU_MASTERS=kudu-master-1:7051,kudu-master-2:7151,kudu-master-3:7251
+      - KUDU_MASTERS=kudu-master-1:7051
       - >
         TSERVER_ARGS=--fs_wal_dir=/var/lib/kudu/tserver
         --rpc_bind_addresses=0.0.0.0:7050
@@ -103,12 +61,11 @@ services:
         --stderrthreshold=0
         --use_hybrid_clock=false
         --unlock_unsafe_flags=true
+
   kudu-tserver-2:
     image: apache/kudu:${KUDU_QUICKSTART_VERSION:-latest}
     depends_on:
       - kudu-master-1
-      - kudu-master-2
-      - kudu-master-3
     ports:
       - "7150:7150"
       - "8150:8150"
@@ -116,7 +73,7 @@ services:
     volumes:
       - kudu-tserver-2:/var/lib/kudu
     environment:
-      - KUDU_MASTERS=kudu-master-1:7051,kudu-master-2:7151,kudu-master-3:7251
+      - KUDU_MASTERS=kudu-master-1:7051
       - >
         TSERVER_ARGS=--fs_wal_dir=/var/lib/kudu/tserver
         --rpc_bind_addresses=0.0.0.0:7150
@@ -127,84 +84,8 @@ services:
         --stderrthreshold=0
         --use_hybrid_clock=false
         --unlock_unsafe_flags=true
-  kudu-tserver-3:
-    image: apache/kudu:${KUDU_QUICKSTART_VERSION:-latest}
-    depends_on:
-      - kudu-master-1
-      - kudu-master-2
-      - kudu-master-3
-    ports:
-      - "7250:7250"
-      - "8250:8250"
-    command: ["tserver"]
-    volumes:
-      - kudu-tserver-3:/var/lib/kudu
-    environment:
-      - KUDU_MASTERS=kudu-master-1:7051,kudu-master-2:7151,kudu-master-3:7251
-      - >
-        TSERVER_ARGS=--fs_wal_dir=/var/lib/kudu/tserver
-        --rpc_bind_addresses=0.0.0.0:7250
-        --rpc_advertised_addresses=${KUDU_QUICKSTART_IP}:7250
-        --webserver_port=8250
-        --webserver_advertised_addresses=${KUDU_QUICKSTART_IP}:8250
-        --webserver_doc_root=/opt/kudu/www
-        --stderrthreshold=0
-        --use_hybrid_clock=false
-        --unlock_unsafe_flags=true
-  kudu-tserver-4:
-    image: apache/kudu:${KUDU_QUICKSTART_VERSION:-latest}
-    depends_on:
-      - kudu-master-1
-      - kudu-master-2
-      - kudu-master-3
-    ports:
-      - "7350:7350"
-      - "8350:8350"
-    command: ["tserver"]
-    volumes:
-      - kudu-tserver-4:/var/lib/kudu
-    environment:
-      - KUDU_MASTERS=kudu-master-1:7051,kudu-master-2:7151,kudu-master-3:7251
-      - >
-        TSERVER_ARGS=--fs_wal_dir=/var/lib/kudu/tserver
-        --rpc_bind_addresses=0.0.0.0:7350
-        --rpc_advertised_addresses=${KUDU_QUICKSTART_IP}:7350
-        --webserver_port=8350
-        --webserver_advertised_addresses=${KUDU_QUICKSTART_IP}:8350
-        --webserver_doc_root=/opt/kudu/www
-        --stderrthreshold=0
-        --use_hybrid_clock=false
-        --unlock_unsafe_flags=true
-  kudu-tserver-5:
-    image: apache/kudu:${KUDU_QUICKSTART_VERSION:-latest}
-    depends_on:
-      - kudu-master-1
-      - kudu-master-2
-      - kudu-master-3
-    ports:
-      - "7450:7450"
-      - "8450:8450"
-    command: ["tserver"]
-    volumes:
-      - kudu-tserver-5:/var/lib/kudu
-    environment:
-      - KUDU_MASTERS=kudu-master-1:7051,kudu-master-2:7151,kudu-master-3:7251
-      - >
-        TSERVER_ARGS=--fs_wal_dir=/var/lib/kudu/tserver
-        --rpc_bind_addresses=0.0.0.0:7450
-        --rpc_advertised_addresses=${KUDU_QUICKSTART_IP}:7450
-        --webserver_port=8450
-        --webserver_advertised_addresses=${KUDU_QUICKSTART_IP}:8450
-        --webserver_doc_root=/opt/kudu/www
-        --stderrthreshold=0
-        --use_hybrid_clock=false
-        --unlock_unsafe_flags=true
+
 volumes:
   kudu-master-1:
-  kudu-master-2:
-  kudu-master-3:
   kudu-tserver-1:
   kudu-tserver-2:
-  kudu-tserver-3:
-  kudu-tserver-4:
-  kudu-tserver-5:

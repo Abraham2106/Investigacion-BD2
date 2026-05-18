@@ -1,6 +1,6 @@
 # Requerimientos — E-Commerce Triad Pipeline
 
-Sistema de E-Commerce basado en **FastAPI + Apache Kafka + Apache Ignite + Apache Kudu**, diseñado para ingerir, procesar y almacenar pedidos en tiempo real, detectando fraudes y filtrando zonas de riesgo.
+Sistema de E-Commerce basado en **FastAPI + Apache Kafka + Apache Ignite + PySpark + Apache Kudu**, diseñado para ingerir, procesar y almacenar pedidos en tiempo real, detectando fraudes y filtrando zonas de riesgo.
 
 ---
 
@@ -301,30 +301,56 @@ spark = SparkSession.builder \
 
 El parámetro `spark.jars.packages` le indica a Spark que descargue el JAR del conector desde Maven Central en el primer arranque. Las ejecuciones subsecuentes lo toman del caché local (`~/.ivy2/jars`), por lo que son instantáneas.
 
-#### 3.6.4. Patrón de Creación de Tabla (DDL) — RF-13
+#### 3.6.4. Patrón de Creación de Tabla (DDL y JVM) — RF-13
 
-La tabla se crea usando Spark SQL estándar con `USING kudu`. **No se requieren constructores Java verbosos** (`ColumnSchemaBuilder`, etc.):
+Dado que el conector oficial de Kudu no implementa un plugin de catálogo estándar para Spark SQL (lo cual arrojaría un error `ClassNotFoundException: org.apache.kudu.spark.kudu.KuduCatalog`), y que `CREATE TABLE ... USING kudu` en Spark SQL puro requiere que la tabla ya exista físicamente en Kudu, **el patrón industrial y robusto para crear tablas columnar en Kudu desde Python es utilizar el puente JVM de Spark (`spark.sparkContext._gateway`)**.
+
+Este enfoque permite definir llaves primarias, tipos y particionamiento por Hash nativos de Kudu de forma programática y 100% segura:
 
 ```python
-spark.sql(f"""
-    CREATE TABLE IF NOT EXISTS orders (
-        order_id    STRING,
-        user_id     STRING,
-        country_code STRING,
-        product     STRING,
-        amount      DOUBLE,
-        status      STRING,
-        timestamp   BIGINT
-    )
-    USING kudu
-    OPTIONS (
-        'kudu.master'     = 'localhost:7051,localhost:7151,localhost:7251',
-        'kudu.table'      = 'orders',
-        'kudu.keyColumns' = 'order_id',
-        'kudu.numTablets' = '3'
-    )
-""")
+# Obtener el gateway JVM de Spark
+gateway = spark.sparkContext._gateway
+
+# Construir el cliente Java de Kudu
+kudu_client_builder = gateway.jvm.org.apache.kudu.client.KuduClient.KuduClientBuilder("localhost:7051")
+kudu_client = kudu_client_builder.build()
+
+qualified_table_name = "default.orders"
+
+if not kudu_client.tableExists(qualified_table_name):
+    ColumnSchemaBuilder = gateway.jvm.org.apache.kudu.ColumnSchema.ColumnSchemaBuilder
+    Type = gateway.jvm.org.apache.kudu.Type
+    
+    # Definir el esquema columnar de Kudu
+    columns = gateway.jvm.java.util.ArrayList()
+    columns.add(ColumnSchemaBuilder("order_id", Type.STRING).key(True).build())
+    columns.add(ColumnSchemaBuilder("user_id", Type.STRING).build())
+    columns.add(ColumnSchemaBuilder("country_code", Type.STRING).build())
+    columns.add(ColumnSchemaBuilder("product", Type.STRING).build())
+    columns.add(ColumnSchemaBuilder("amount", Type.DOUBLE).build())
+    columns.add(ColumnSchemaBuilder("status", Type.STRING).build())
+    columns.add(ColumnSchemaBuilder("timestamp", Type.INT64).build())
+    
+    schema = gateway.jvm.org.apache.kudu.Schema(columns)
+    
+    # Definir opciones de particionado y factor de replicación
+    CreateTableOptions = gateway.jvm.org.apache.kudu.client.CreateTableOptions
+    options = CreateTableOptions()
+    options.setNumReplicas(1)  # Soporte para clústeres ligeros de desarrollo (2 tservers)
+    
+    hash_cols = gateway.jvm.java.util.ArrayList()
+    hash_cols.add("order_id")
+    options.addHashPartitions(hash_cols, 3)
+    
+    # Crear físicamente la tabla
+    kudu_client.createTable(qualified_table_name, schema, options)
+    print("Tabla creada en Kudu con éxito.")
+
+kudu_client.close()
 ```
+
+> [!TIP]
+> **Consideración de Replicación:** Establecer `options.setNumReplicas(1)` es crítico en clústeres de desarrollo que se han limitado a menos de 3 Tablet Servers. De lo contrario, Kudu lanzará una excepción `NonRecoverableException` al no poder cumplir con el factor de replicación por defecto (3).
 
 #### 3.6.5. Patrón de Escritura Idempotente (Upsert) — RF-12
 

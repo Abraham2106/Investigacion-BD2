@@ -1,5 +1,5 @@
 # E-Commerce Triad
-Este proyecto hace uso de Apache Kafka, Apache Kudu y Apache Ignite para crear un sistema de E-Commerce. Los datos ingestados serán producidos por un script de Python que simula la actividad de un sitio de E-Commerce, generando datos de ventas, productos, zonas, etc.
+Este proyecto hace uso de Apache Kafka, Apache Ignite, PySpark y Apache Kudu para crear un sistema de E-Commerce. Los datos ingestados serán producidos por un script de Python que simula la actividad de un sitio de E-Commerce, generando datos de ventas, productos, zonas, etc.
 Este sistema debe poder clasificar los datos por zonas y precio para así poder filtrar y banear los pedidos de zonas inseguras y con precios sospechosos.
 
 
@@ -12,7 +12,7 @@ Un servicio FastAPI (`01_kafka_ingest.py`) recibe pedidos a través de una API R
 Un consumidor de Kafka (`02_ignite_fraud.py`) procesa los pedidos en tiempo real, utilizando Apache Ignite para mantener en memoria cachés de países de riesgo y velocidad de compra por usuario. Los pedidos se clasifican como `APPROVED` o `BLOCKED` y se publican en un topic `orders-processed`.
 
 ### 1.3. **Almacenamiento en frío**
-Otro consumidor (`03_kudu_drain.py`) lee los pedidos aprobados y los almacena en una tabla de Apache Kudu utilizando operaciones `upsert` para garantizar idempotencia.
+Otro consumidor basado en PySpark (`03_kudu_drain.py`) lee los pedidos aprobados y los almacena en una tabla de Apache Kudu utilizando operaciones `upsert` para garantizar idempotencia.
 
 ## 2. Arquitectura del Sistema
 
