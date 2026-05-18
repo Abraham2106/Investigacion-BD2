@@ -1,0 +1,6 @@
+pyignite
+kafka-python-ng
+pyspark==3.5.1
+fastapi
+uvicorn
+httpx
