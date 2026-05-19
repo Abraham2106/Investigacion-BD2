@@ -8,7 +8,6 @@
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](./docker-compose.yml)
 
 <br/>
-
 Sistema de E-Commerce basado en FastAPI + Apache Kafka + Apache Ignite + PySpark + Apache Kudu, diseñado para ingerir, procesar y almacenar pedidos en tiempo real, detectando fraudes y filtrando zonas de riesgo.
 
 ## 🎯 Objetivo de Investigación 
@@ -37,7 +36,14 @@ Este proyecto hace uso de Apache Kafka, Apache Ignite, PySpark y Apache Kudu par
 
 ---
 
-## Inicio 
+## 👥 Equipo 
+
+- Abraham Gerardo Solano Parrales
+- Sofia Elena Barrantes Miranda
+- Daniel Josué Herrera Córdoba
+- Kevin David Jiménez Escalante
+
+---
 
 <div align="center">
 
