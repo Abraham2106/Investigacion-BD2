@@ -6,3 +6,7 @@ class Order(BaseModel):
     country_code: str = Field(..., min_length=2, max_length=2, example="CR")
     product: str = Field(..., example="Laptop")
     amount: float = Field(..., gt=0, example=1200.50)
+
+class RiskCountry(BaseModel):
+    country_code: str = Field(..., min_length=2, max_length=2, example="CR")
+    is_risk: bool = Field(..., example=True)

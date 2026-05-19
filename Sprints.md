@@ -34,21 +34,21 @@ Este documento describe el plan detallado de sprints para el desarrollo e integr
 *   **Requerimientos:** `RF-01`, `RF-03`, `RF-04`, `RF-18`
 *   **Objetivo:** Exponer el endpoint `POST /orders` con validación estricta de esquema y respuesta inmediata al cliente.
 *   **Tareas:**
-    *   [ ] Definir el modelo Pydantic de entrada: `order_id`, `user_id`, `country_code`, `product`, `amount` (float).
-    *   [ ] Implementar `POST /orders` que valide el payload y devuelva 422 automático si faltan campos.
-    *   [ ] Responder con `{"status": "queued", "order_id": "..."}` tras publicación exitosa.
-    *   [ ] Agregar manejo de excepciones para errores de conexión con Kafka.
-    *   [ ] Verificar la UI de Swagger en `/docs` con ejemplos de request válido e inválido.
+    *   [x] Definir el modelo Pydantic de entrada: `order_id`, `user_id`, `country_code`, `product`, `amount` (float).
+    *   [x] Implementar `POST /orders` que valide el payload y devuelva 422 automático si faltan campos.
+    *   [x] Responder con `{"status": "queued", "order_id": "..."}` tras publicación exitosa.
+    *   [x] Agregar manejo de excepciones para errores de conexión con Kafka.
+    *   [x] Verificar la UI de Swagger en `/docs` con ejemplos de request válido e inválido.
 
 ### S-04: Productor Kafka y particionamiento
 *   **Requerimientos:** `RF-02`, `RF-05`
 *   **Objetivo:** Publicar pedidos en el topic `orders` usando `country_code` como clave de partición.
 *   **Tareas:**
-    *   [ ] Crear el topic `orders` con 3 particiones y replication factor 1 (entorno local).
-    *   [ ] Implementar el KafkaProducer en FastAPI usando `confluent-kafka-python`.
-    *   [ ] Configurar `country_code` como partition key al momento de producir el mensaje.
-    *   [ ] Serializar el payload como JSON (UTF-8) antes de publicar.
-    *   [ ] Escribir el script simulador (`05_simulator.py`) que genere N pedidos/seg con datos aleatorios.
+    *   [x] Crear el topic `orders` con 3 particiones y replication factor 1 (entorno local).
+    *   [x] Implementar el KafkaProducer en FastAPI usando `confluent-kafka-python`.
+    *   [x] Configurar `country_code` como partition key al momento de producir el mensaje.
+    *   [x] Serializar el payload como JSON (UTF-8) antes de publicar.
+    *   [x] Escribir el script simulador (`05_simulator.py`) que genere N pedidos/seg con datos aleatorios.
 
 ---
 
@@ -58,21 +58,21 @@ Este documento describe el plan detallado de sprints para el desarrollo e integr
 *   **Requerimientos:** `RF-07`, `RF-10`
 *   **Objetivo:** Crear y poblar la caché `risk_countries` en memoria, permitiendo actualizaciones en caliente.
 *   **Tareas:**
-    *   [ ] Conectar al cluster Ignite con el thin client de Python (`pyignite`).
-    *   [ ] Crear la caché `risk_countries` de tipo String → Boolean.
-    *   [ ] Poblar la caché con una lista inicial de países de prueba (ej. `XX`, `YY`, `ZZ`).
-    *   [ ] Exponer un endpoint auxiliar en FastAPI: `POST /risk-countries` para agregar/quitar países.
-    *   [ ] Verificar que los cambios en la caché son visibles sin reiniciar ningún script.
+    *   [x] Conectar al cluster Ignite con el thin client de Python (`pyignite`).
+    *   [x] Crear la caché `risk_countries` de tipo String → Boolean.
+    *   [x] Poblar la caché con una lista inicial de países de prueba (ej. `XX`, `YY`, `ZZ`).
+    *   [x] Exponer un endpoint auxiliar en FastAPI: `POST /risk-countries` para agregar/quitar países.
+    *   [x] Verificar que los cambios en la caché son visibles sin reiniciar ningún script.
 
 ### S-06: Detección de fraude por velocidad de compra
 *   **Requerimientos:** `RF-06`, `RF-08`, `RF-09`
 *   **Objetivo:** Consumir el topic `orders`, aplicar ambas reglas de fraude y publicar en `orders-processed`.
 *   **Tareas:**
-    *   [ ] Crear el topic `orders-processed` con las mismas particiones que `orders`.
-    *   [ ] Implementar el consumidor Kafka en `02_ignite_fraud.py` con group_id propio.
-    *   [ ] Crear la caché `user_velocity` con TTL de 60 segundos e incremento atómico por `user_id`.
-    *   [ ] Aplicar las dos reglas en orden: primero `country_code`, luego velocidad de usuario.
-    *   [ ] Enriquecer el evento con `status` (`APPROVED`/`BLOCKED`) y `timestamp` antes de publicar en `orders-processed`.
+    *   [x] Crear el topic `orders-processed` con las mismas particiones que `orders`.
+    *   [x] Implementar el consumidor Kafka en `02_ignite_fraud.py` con group_id propio.
+    *   [x] Crear la caché `user_velocity` con TTL de 60 segundos e incremento atómico por `user_id`.
+    *   [x] Aplicar las dos reglas en orden: primero `country_code`, luego velocidad de usuario.
+    *   [x] Enriquecer el evento con `status` (`APPROVED`/`BLOCKED`) y `timestamp` antes de publicar en `orders-processed`.
 
 ---
 
