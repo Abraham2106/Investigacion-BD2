@@ -112,11 +112,11 @@ Este documento describe el plan detallado de sprints para el desarrollo e integr
 *   **Requerimientos:** `RF-15`, `RF-16`
 *   **Objetivo:** Conectar Grafana a Kudu y construir un panel con los KPIs principales del pipeline.
 *   **Tareas:**
-    *   [ ] Configurar el datasource de Kudu en Grafana (plugin o datasource compatible).
-    *   [ ] Crear panel de barras: ingresos totales por país (`country_code` vs `SUM amount`).
-    *   [ ] Crear panel de pie chart o barras apiladas: pedidos `APPROVED` vs `BLOCKED`.
-    *   [ ] Crear panel de tabla: top 5 productos por revenue.
-    *   [ ] Exportar el dashboard como JSON y versionarlo en el repositorio.
+    *   [x] Configurar el datasource de Kudu en Grafana (plugin o datasource compatible).
+    *   [x] Crear panel de barras: ingresos totales por país (`country_code` vs `SUM amount`).
+    *   [x] Crear panel de pie chart o barras apiladas: pedidos `APPROVED` vs `BLOCKED`.
+    *   [x] Crear panel de tabla: top 5 productos por revenue.
+    *   [x] Exportar el dashboard como JSON y versionarlo en el repositorio.
 
 ### S-11: Pruebas de integración end-to-end
 *   **Requerimientos:** `RF-01`, `RF-06`, `RF-11`, `RF-15`

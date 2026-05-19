@@ -1,0 +1,1082 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_ORDERS_API",
+      "label": "Orders API (Infinity)",
+      "description": "Infinity datasource apuntando a FastAPI",
+      "type": "datasource",
+      "pluginId": "yesoreyeram-infinity-datasource",
+      "pluginName": "Infinity"
+    }
+  ],
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "9.5.0"
+    },
+    {
+      "type": "datasource",
+      "id": "yesoreyeram-infinity-datasource",
+      "name": "Infinity",
+      "version": "1.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "barchart",
+      "name": "Bar chart",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "piechart",
+      "name": "Pie chart",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "table",
+      "name": "Table",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "stat",
+      "name": "Stat",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "gauge",
+      "name": "Gauge",
+      "version": ""
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Dashboard de monitoreo en tiempo real para e-commerce: ingresos, fraude, productos y transacciones",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_ORDERS_API}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#5794F2",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 50000
+              },
+              {
+                "color": "green",
+                "value": 80000
+              }
+            ]
+          },
+          "unit": "currencyUSD",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 0,
+        "y": 0
+      },
+      "id": 10,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "Revenue",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "9.5.0",
+      "targets": [
+        {
+          "refId": "A",
+          "columns": [
+            {
+              "selector": "country_code",
+              "text": "País",
+              "type": "string"
+            },
+            {
+              "selector": "total_revenue",
+              "text": "Revenue",
+              "type": "number"
+            }
+          ],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_ORDERS_API}"
+          },
+          "filters": [],
+          "format": "table",
+          "source": "url",
+          "type": "json",
+          "url": "/analytics/by-country",
+          "url_options": {
+            "data": "",
+            "method": "GET"
+          }
+        }
+      ],
+      "title": "Ingresos Totales",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_ORDERS_API}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#73BF69",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 500
+              },
+              {
+                "color": "green",
+                "value": 1000
+              }
+            ]
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 8,
+        "y": 0
+      },
+      "id": 11,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "Total Órdenes",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "9.5.0",
+      "targets": [
+        {
+          "refId": "A",
+          "columns": [
+            {
+              "selector": "status",
+              "text": "Estado",
+              "type": "string"
+            },
+            {
+              "selector": "total_orders",
+              "text": "Total Órdenes",
+              "type": "number"
+            }
+          ],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_ORDERS_API}"
+          },
+          "filters": [],
+          "format": "table",
+          "source": "url",
+          "type": "json",
+          "url": "/analytics/by-status",
+          "url_options": {
+            "data": "",
+            "method": "GET"
+          }
+        }
+      ],
+      "title": "Total Órdenes",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_ORDERS_API}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#FF9830",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "green",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "currencyUSD",
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "id": 13,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "Monto",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "9.5.0",
+      "targets": [
+        {
+          "refId": "A",
+          "columns": [
+            {
+              "selector": "timestamp",
+              "text": "Fecha/Hora",
+              "type": "string"
+            },
+            {
+              "selector": "order_id",
+              "text": "ID Pedido",
+              "type": "string"
+            },
+            {
+              "selector": "user_id",
+              "text": "ID Usuario",
+              "type": "string"
+            },
+            {
+              "selector": "country_code",
+              "text": "País",
+              "type": "string"
+            },
+            {
+              "selector": "product",
+              "text": "Producto",
+              "type": "string"
+            },
+            {
+              "selector": "amount",
+              "text": "Monto",
+              "type": "number"
+            },
+            {
+              "selector": "status",
+              "text": "Estado",
+              "type": "string"
+            }
+          ],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_ORDERS_API}"
+          },
+          "filters": [],
+          "format": "table",
+          "source": "url",
+          "type": "json",
+          "url": "/analytics/recent-orders",
+          "url_options": {
+            "data": "",
+            "method": "GET"
+          }
+        }
+      ],
+      "title": "Ticket Promedio",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_ORDERS_API}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "fillOpacity": 85,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 1,
+            "axisLabel": "Ingresos (USD)",
+            "axisCenteredZero": false
+          },
+          "unit": "currencyUSD",
+          "decimals": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "País"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "AR": {
+                        "color": "light-blue",
+                        "text": "Argentina"
+                      },
+                      "CR": {
+                        "color": "red",
+                        "text": "Costa Rica"
+                      },
+                      "MX": {
+                        "color": "green",
+                        "text": "México"
+                      },
+                      "BR": {
+                        "color": "yellow",
+                        "text": "Brasil"
+                      },
+                      "US": {
+                        "color": "blue",
+                        "text": "USA"
+                      },
+                      "HN": {
+                        "color": "semi-dark-blue",
+                        "text": "Honduras"
+                      },
+                      "GT": {
+                        "color": "light-blue",
+                        "text": "Guatemala"
+                      },
+                      "CO": {
+                        "color": "orange",
+                        "text": "Colombia"
+                      },
+                      "PE": {
+                        "color": "red",
+                        "text": "Perú"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 13,
+        "x": 0,
+        "y": 4
+      },
+      "id": 1,
+      "options": {
+        "barRadius": 0.15,
+        "barWidth": 0.65,
+        "groupWidth": 0.7,
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "orientation": "auto",
+        "tooltip": {
+          "mode": "single",
+          "sort": "desc"
+        },
+        "xTickLabelRotation": -30,
+        "xTickLabelSpacing": 80,
+        "text": {
+          "valueSize": 11
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "columns": [
+            {
+              "selector": "country_code",
+              "text": "País",
+              "type": "string"
+            },
+            {
+              "selector": "total_revenue",
+              "text": "Revenue",
+              "type": "number"
+            }
+          ],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_ORDERS_API}"
+          },
+          "filters": [],
+          "format": "table",
+          "source": "url",
+          "type": "json",
+          "url": "/analytics/by-country",
+          "url_options": {
+            "data": "",
+            "method": "GET"
+          }
+        }
+      ],
+      "title": "Ingresos Totales por País",
+      "description": "Revenue acumulado agrupado por código de país en la última hora",
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_ORDERS_API}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [
+            {
+              "options": {
+                "APPROVED": {
+                  "color": "#73BF69",
+                  "index": 0,
+                  "text": "Aprobada"
+                },
+                "BLOCKED": {
+                  "color": "#F2495C",
+                  "index": 1,
+                  "text": "Fraude Bloqueado"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 11,
+        "x": 13,
+        "y": 4
+      },
+      "id": 2,
+      "options": {
+        "reduceOptions": {
+          "values": true,
+          "calcs": [],
+          "fields": ""
+        },
+        "displayLabels": [
+          "percent",
+          "value"
+        ],
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "values": [
+            "value",
+            "percent"
+          ]
+        },
+        "pieType": "donut",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "columns": [
+            {
+              "selector": "status",
+              "text": "Estado",
+              "type": "string"
+            },
+            {
+              "selector": "total_orders",
+              "text": "Total Órdenes",
+              "type": "number"
+            }
+          ],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_ORDERS_API}"
+          },
+          "filters": [],
+          "format": "table",
+          "source": "url",
+          "type": "json",
+          "url": "/analytics/by-status",
+          "url_options": {
+            "data": "",
+            "method": "GET"
+          }
+        }
+      ],
+      "title": "Distribución de Órdenes — Aprobadas vs Fraude",
+      "description": "Proporción de transacciones legítimas versus fraudes bloqueados",
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_ORDERS_API}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-BlPu"
+          },
+          "custom": {
+            "fillOpacity": 90,
+            "gradientMode": "none",
+            "axisLabel": "Revenue ($)",
+            "lineWidth": 1
+          },
+          "unit": "currencyUSD",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 13
+      },
+      "id": 3,
+      "options": {
+        "barRadius": 0.2,
+        "barWidth": 0.75,
+        "groupWidth": 0.8,
+        "legend": {
+          "displayMode": "hidden",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "orientation": "horizontal",
+        "tooltip": {
+          "mode": "single",
+          "sort": "desc"
+        },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0,
+        "text": {
+          "valueSize": 11
+        },
+        "fullHighlight": false
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "columns": [
+            {
+              "selector": "product",
+              "text": "Producto",
+              "type": "string"
+            },
+            {
+              "selector": "total_revenue",
+              "text": "Revenue",
+              "type": "number"
+            }
+          ],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_ORDERS_API}"
+          },
+          "filters": [],
+          "format": "table",
+          "source": "url",
+          "type": "json",
+          "url": "/analytics/by-product",
+          "url_options": {
+            "data": "",
+            "method": "GET"
+          }
+        }
+      ],
+      "title": "Top Productos por Rentabilidad",
+      "description": "Ranking horizontal de productos ordenados por ingresos generados",
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_ORDERS_API}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "left",
+            "displayMode": "auto",
+            "filterable": true,
+            "inspect": false,
+            "minWidth": 80
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Estado"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              },
+              {
+                "id": "custom.width",
+                "value": 160
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "APPROVED": {
+                        "color": "green",
+                        "text": "APROBADO"
+                      },
+                      "BLOCKED": {
+                        "color": "red",
+                        "text": "FRAUDE BLOQUEADO"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Monto"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "lcd-gauge"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "continuous-GrYlRd"
+                }
+              },
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.width",
+                "value": 180
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 100
+                    },
+                    {
+                      "color": "red",
+                      "value": 500
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Fecha/Hora"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 160
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ID Pedido"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 120
+              },
+              {
+                "id": "links",
+                "value": []
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "País"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 70
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "AR": {
+                        "text": "AR"
+                      },
+                      "CR": {
+                        "text": "CR"
+                      },
+                      "MX": {
+                        "text": "MX"
+                      },
+                      "BR": {
+                        "text": "BR"
+                      },
+                      "US": {
+                        "text": "US"
+                      },
+                      "HN": {
+                        "text": "HN"
+                      },
+                      "GT": {
+                        "text": "GT"
+                      },
+                      "CO": {
+                        "text": "CO"
+                      },
+                      "PE": {
+                        "text": "PE"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Producto"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 150
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ID Usuario"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      },
+      "id": 4,
+      "options": {
+        "footer": {
+          "show": true,
+          "reducer": [
+            "count"
+          ],
+          "fields": [
+            "ID Pedido"
+          ],
+          "countRows": true,
+          "enablePagination": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "Fecha/Hora",
+            "desc": true
+          }
+        ],
+        "frameIndex": 0,
+        "cellHeight": "md"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "columns": [
+            {
+              "selector": "timestamp",
+              "text": "Fecha/Hora",
+              "type": "string"
+            },
+            {
+              "selector": "order_id",
+              "text": "ID Pedido",
+              "type": "string"
+            },
+            {
+              "selector": "user_id",
+              "text": "ID Usuario",
+              "type": "string"
+            },
+            {
+              "selector": "country_code",
+              "text": "País",
+              "type": "string"
+            },
+            {
+              "selector": "product",
+              "text": "Producto",
+              "type": "string"
+            },
+            {
+              "selector": "amount",
+              "text": "Monto",
+              "type": "number"
+            },
+            {
+              "selector": "status",
+              "text": "Estado",
+              "type": "string"
+            }
+          ],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_ORDERS_API}"
+          },
+          "filters": [],
+          "format": "table",
+          "source": "url",
+          "type": "json",
+          "url": "/analytics/recent-orders",
+          "url_options": {
+            "data": "",
+            "method": "GET"
+          }
+        }
+      ],
+      "title": "Monitoreo de Transacciones en Vivo — Últimos Pedidos",
+      "description": "Tabla en tiempo real con las transacciones más recientes. Rojo = fraude detectado, Verde = aprobado.",
+      "type": "table"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "tags": [
+    "kudu",
+    "ecommerce",
+    "premium",
+    "realtime",
+    "fraud",
+    "analytics"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
+        "hide": 0,
+        "includeAll": true,
+        "multi": true,
+        "name": "country",
+        "options": [],
+        "query": "AR,BR,CO,CR,GT,HN,MX,PE,US",
+        "queryValue": "",
+        "skipUrlSync": false,
+        "type": "custom",
+        "label": "País",
+        "description": "Filtrar por país"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
+        "hide": 0,
+        "includeAll": true,
+        "multi": false,
+        "name": "status",
+        "options": [],
+        "query": "APPROVED,BLOCKED",
+        "queryValue": "",
+        "skipUrlSync": false,
+        "type": "custom",
+        "label": "Estado",
+        "description": "Filtrar por estado de la orden"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d"
+    ]
+  },
+  "timezone": "browser",
+  "title": "E-Commerce Live — Premium Dashboard",
+  "uid": "ecommerce-live-premium-v2",
+  "version": 4
+}
