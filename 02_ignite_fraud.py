@@ -1,11 +1,11 @@
 import sys
 import os
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import json
 import time
 from datetime import datetime
 from confluent_kafka import Consumer, Producer
+from confluent_kafka.admin import AdminClient, NewTopic
 from ignite_client import risk_countries_cache, user_velocity_cache
 
 """
@@ -22,6 +22,14 @@ OUTPUT_TOPIC = "orders-processed"
 
 # Se levanta productor para las ordenes procesadas
 producer = Producer({"bootstrap.servers": KAFKA_BROKER})
+
+# Crear el tópico de forma pro-activa si no existe
+_admin = AdminClient({"bootstrap.servers": KAFKA_BROKER})
+_existing = _admin.list_topics(timeout=5).topics
+if INPUT_TOPIC not in _existing:
+    _admin.create_topics([NewTopic(INPUT_TOPIC, num_partitions=3, replication_factor=1)])[INPUT_TOPIC].result()
+if OUTPUT_TOPIC not in _existing:
+    _admin.create_topics([NewTopic(OUTPUT_TOPIC, num_partitions=3, replication_factor=1)])[OUTPUT_TOPIC].result()
 
 # Consumidor con datos de orders ( el auto offset reset es para que lea desde el inicio )
 # Obtenido de : https://stackoverflow.com/questions/48320672/what-is-the-difference-between-kafka-earliest-and-latest-offset-values

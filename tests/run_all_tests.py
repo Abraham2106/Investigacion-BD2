@@ -1,9 +1,6 @@
 import sys
 import os
 
-# Asegurar que el directorio actual de pruebas este en el path de importacion de Python
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
 import test_colors as tc
 from test_ignite import run_ignite_test
 from test_kafka import run_kafka_test

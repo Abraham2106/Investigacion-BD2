@@ -82,21 +82,17 @@ Este documento describe el plan detallado de sprints para el desarrollo e integr
 *   **Requerimientos:** `RF-11`, `RF-12`, `RF-13`
 *   **Objetivo:** Definir la tabla `orders` en Kudu con las columnas, tipos y estrategia de particionado correctos.
 *   **Tareas:**
-    *   [ ] Conectar a Kudu Master usando `kudu-python client`.
-    *   [ ] Crear la tabla `orders` con columnas: `order_id` (PK), `user_id`, `country_code`, `product`, `amount`, `status`, `timestamp`.
-    *   [ ] Configurar hash partitioning sobre `order_id` con 3 tablets.
-    *   [ ] Verificar que la tabla existe y está accesible desde el cliente Python.
-    *   [ ] Documentar el esquema final en el README del proyecto.
+    *   [x] Documentar el esquema final en el README del proyecto.
 
 ### S-08: Consumidor de almacenamiento en Kudu
 *   **Requerimientos:** `RF-11`, `RF-12`, `RF-14`
 *   **Objetivo:** Leer solo pedidos `APPROVED` de `orders-processed` y persistirlos con `upsert` en Kudu.
 *   **Tareas:**
-    *   [ ] Implementar `03_kudu_drain.py` como consumidor Kafka del topic `orders-processed`.
-    *   [ ] Filtrar mensajes: procesar únicamente los que tengan `status == APPROVED`.
-    *   [ ] Ejecutar operación `upsert` en Kudu por cada pedido aprobado.
-    *   [ ] Manejar errores de escritura: log del error y continuar sin detener el consumidor.
-    *   [ ] Probar idempotencia: reenviar el mismo `order_id` dos veces y verificar que no se duplica.
+    *   [x] Implementar `03_kudu_drain.py` como consumidor Kafka del topic `orders-processed`.
+    *   [x] Filtrar mensajes: procesar únicamente los que tengan `status == APPROVED`.
+    *   [x] Ejecutar operación `upsert` en Kudu por cada pedido aprobado.
+    *   [x] Manejar errores de escritura: log del error y continuar sin detener el consumidor.
+    *   [x] Probar idempotencia: reenviar el mismo `order_id` dos veces y verificar que no se duplica.
 
 ### S-09: Consultas analíticas sobre Kudu
 *   **Requerimientos:** `RF-14`

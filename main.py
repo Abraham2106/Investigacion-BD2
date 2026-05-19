@@ -1,6 +1,5 @@
 import sys
 import os
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))) # Para que reconozca los otros archivos
 
 from fastapi import FastAPI, HTTPException, status
 from schemas import Order, RiskCountry

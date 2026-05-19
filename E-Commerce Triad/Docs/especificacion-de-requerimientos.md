@@ -295,62 +295,62 @@ from pyspark.sql import SparkSession
 spark = SparkSession.builder \
     .appName("KuduDrainer") \
     .config("spark.jars.packages", "org.apache.kudu:kudu-spark3_2.12:1.17.0") \
-    .config("spark.driver.host", "localhost") \
     .getOrCreate()
 ```
 
 El parámetro `spark.jars.packages` le indica a Spark que descargue el JAR del conector desde Maven Central en el primer arranque. Las ejecuciones subsecuentes lo toman del caché local (`~/.ivy2/jars`), por lo que son instantáneas.
 
-#### 3.6.4. Patrón de Creación de Tabla (DDL y JVM) — RF-13
+#### 3.6.4. Patrón de Creación de Tabla (KuduContext y JVM) — RF-13
 
-Dado que el conector oficial de Kudu no implementa un plugin de catálogo estándar para Spark SQL (lo cual arrojaría un error `ClassNotFoundException: org.apache.kudu.spark.kudu.KuduCatalog`), y que `CREATE TABLE ... USING kudu` en Spark SQL puro requiere que la tabla ya exista físicamente en Kudu, **el patrón industrial y robusto para crear tablas columnar en Kudu desde Python es utilizar el puente JVM de Spark (`spark.sparkContext._gateway`)**.
+Dado que el conector oficial de Kudu no implementa un plugin de catálogo estándar para Spark SQL (lo cual arrojaría un error `ClassNotFoundException: org.apache.kudu.spark.kudu.KuduCatalog`), y que `CREATE TABLE ... USING kudu` en Spark SQL puro requiere que la tabla ya exista físicamente en Kudu, **el patrón industrial y robusto para crear tablas columnar en Kudu desde Python es utilizar la API nativa de `KuduContext` a través de la JVM de Spark (`spark.sparkContext._jvm`)**.
 
-Este enfoque permite definir llaves primarias, tipos y particionamiento por Hash nativos de Kudu de forma programática y 100% segura:
+Este enfoque permite definir llaves primarias, tipos de Spark y particionamiento por Hash nativos de Kudu de forma programática y 100% segura, traduciendo tipos de datos de PySpark directamente a Scala:
 
 ```python
-# Obtener el gateway JVM de Spark
-gateway = spark.sparkContext._gateway
+from pyspark.sql.types import *
 
-# Construir el cliente Java de Kudu
-kudu_client_builder = gateway.jvm.org.apache.kudu.client.KuduClient.KuduClientBuilder("localhost:7051")
-kudu_client = kudu_client_builder.build()
+sc = spark.sparkContext
+jvm = sc._jvm
 
-qualified_table_name = "default.orders"
+# Instanciar el KuduContext apuntando al Master
+kudu_context = jvm.org.apache.kudu.spark.kudu.KuduContext("127.0.0.1:7051", sc._jsc.sc())
 
-if not kudu_client.tableExists(qualified_table_name):
-    ColumnSchemaBuilder = gateway.jvm.org.apache.kudu.ColumnSchema.ColumnSchemaBuilder
-    Type = gateway.jvm.org.apache.kudu.Type
+table_name = "orders"
+
+if not kudu_context.tableExists(table_name):
+    # 1. Definir el esquema regular en PySpark
+    schema = StructType([
+        StructField("order_id", StringType(), False),  # PK no nula
+        StructField("user_id", StringType(), True),
+        StructField("country_code", StringType(), True),
+        StructField("product", StringType(), True),
+        StructField("amount", DoubleType(), True),
+        StructField("status", StringType(), True),
+        StructField("timestamp", StringType(), True)
+    ])
     
-    # Definir el esquema columnar de Kudu
-    columns = gateway.jvm.java.util.ArrayList()
-    columns.add(ColumnSchemaBuilder("order_id", Type.STRING).key(True).build())
-    columns.add(ColumnSchemaBuilder("user_id", Type.STRING).build())
-    columns.add(ColumnSchemaBuilder("country_code", Type.STRING).build())
-    columns.add(ColumnSchemaBuilder("product", Type.STRING).build())
-    columns.add(ColumnSchemaBuilder("amount", Type.DOUBLE).build())
-    columns.add(ColumnSchemaBuilder("status", Type.STRING).build())
-    columns.add(ColumnSchemaBuilder("timestamp", Type.INT64).build())
+    # 2. Traducir el esquema StructType de PySpark al StructType de Scala vía JSON
+    scala_schema = jvm.org.apache.spark.sql.types.DataType.fromJson(schema.json())
     
-    schema = gateway.jvm.org.apache.kudu.Schema(columns)
-    
-    # Definir opciones de particionado y factor de replicación
-    CreateTableOptions = gateway.jvm.org.apache.kudu.client.CreateTableOptions
-    options = CreateTableOptions()
+    # 3. Definir opciones de particionado y factor de replicación
+    options = jvm.org.apache.kudu.client.CreateTableOptions()
     options.setNumReplicas(1)  # Soporte para clústeres ligeros de desarrollo (2 tservers)
     
-    hash_cols = gateway.jvm.java.util.ArrayList()
-    hash_cols.add("order_id")
-    options.addHashPartitions(hash_cols, 3)
+    # Agregar particionado por Hash (3 buckets) usando una lista de Java
+    cols_list = jvm.java.util.ArrayList()
+    cols_list.add("order_id")
+    options.addHashPartitions(cols_list, 3)
     
-    # Crear físicamente la tabla
-    kudu_client.createTable(qualified_table_name, schema, options)
+    # Traducir la clave primaria a un objeto Seq de Scala
+    pk_seq = jvm.scala.collection.JavaConverters.asScalaBufferConverter(cols_list).asScala().toSeq()
+    
+    # 4. Crear físicamente la tabla a través del KuduContext
+    kudu_context.createTable(table_name, scala_schema, pk_seq, options)
     print("Tabla creada en Kudu con éxito.")
-
-kudu_client.close()
 ```
 
 > [!TIP]
-> **Consideración de Replicación:** Establecer `options.setNumReplicas(1)` es crítico en clústeres de desarrollo que se han limitado a menos de 3 Tablet Servers. De lo contrario, Kudu lanzará una excepción `NonRecoverableException` al no poder cumplir con el factor de replicación por defecto (3).
+> **Consideración de Replicación:** Establecer `options.setNumReplicas(1)` es crítico en clústeres de desarrollo que se han limitado a menos de 3 Tablet Servers. De lo contrario, Kudu lanzará una excepción al no poder cumplir con el factor de replicación por defecto (3).
 
 #### 3.6.5. Patrón de Escritura Idempotente (Upsert) — RF-12
 

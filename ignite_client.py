@@ -1,8 +1,9 @@
 from pyignite import Client
 import sys
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'test')))
-import test_colors as tc
+from tests import test_colors as tc
+
+import time
 
 # Instancia global del cliente de Ignite 
 ignite_client = Client()

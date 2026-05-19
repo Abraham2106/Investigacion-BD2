@@ -38,6 +38,7 @@ services:
         --webserver_doc_root=/opt/kudu/www \
         --stderrthreshold=0 \
         --use_hybrid_clock=false \
+        --default_num_replicas=1 \
         --unlock_unsafe_flags=true"
 
   kudu-tserver-1:
