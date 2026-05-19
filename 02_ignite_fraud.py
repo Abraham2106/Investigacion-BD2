@@ -3,7 +3,7 @@ import os
 
 import json
 import time
-from datetime import datetime
+import datetime
 from confluent_kafka import Consumer, Producer
 from confluent_kafka.admin import AdminClient, NewTopic
 from ignite_client import risk_countries_cache, user_velocity_cache
@@ -23,7 +23,7 @@ OUTPUT_TOPIC = "orders-processed"
 # Se levanta productor para las ordenes procesadas
 producer = Producer({"bootstrap.servers": KAFKA_BROKER})
 
-# Crear el tópico de forma pro-activa si no existe
+# Se debe de crear el topic si no existe porque sin eso se rompe tod
 _admin = AdminClient({"bootstrap.servers": KAFKA_BROKER})
 _existing = _admin.list_topics(timeout=5).topics
 if INPUT_TOPIC not in _existing:
@@ -101,7 +101,7 @@ try:
         # EL objetivo de ignite es este; "enriquecer" la orden para que pueda ser procesada y declarada como fraudelante o no 
         order["status"] = status
         order["reason"] = reason
-        order["timestamp"] = datetime.utcnow().isoformat() + "Z"  
+        order["timestamp"] = datetime.datetime.now(datetime.UTC).isoformat() + "Z"  
         
         # Se envia al topic de ordenes procesadas 
         producer.produce(
