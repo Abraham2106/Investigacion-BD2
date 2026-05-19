@@ -75,8 +75,7 @@ def main():
                 try:
                     order = json.loads(msg.value().decode("utf-8"))
 
-                    if order.get("status") != "APPROVED":
-                        continue
+                    status_val = str(order.get("status", "UNKNOWN"))
 
                     buffer.append({
                         "order_id":     str(order["order_id"]),
@@ -84,7 +83,7 @@ def main():
                         "country_code": str(order.get("country_code", "")),
                         "product":      str(order.get("product", "")),
                         "amount":       float(order.get("amount", 0.0)),
-                        "status":       "APPROVED",
+                        "status":       status_val,
                         "timestamp":    str(order.get(
                             "timestamp",
                             datetime.datetime.now(datetime.UTC).isoformat()
