@@ -98,11 +98,11 @@ Este documento describe el plan detallado de sprints para el desarrollo e integr
 *   **Requerimientos:** `RF-14`
 *   **Objetivo:** Validar que los datos en Kudu soportan las consultas analíticas requeridas por el proyecto.
 *   **Tareas:**
-    *   [ ] Escribir consulta: `SUM(amount) GROUP BY country_code`.
-    *   [ ] Escribir consulta: `COUNT(*) GROUP BY status` (`APPROVED` vs `BLOCKED`).
-    *   [ ] Escribir consulta: `SUM(amount) GROUP BY product`.
-    *   [ ] Medir tiempo de respuesta de cada consulta con el dataset de prueba generado.
-    *   [ ] Guardar los queries en un archivo `analytics.sql` para referencia futura.
+    *   [x] Escribir consulta: `SUM(amount) GROUP BY country_code`.
+    *   [x] Escribir consulta: `COUNT(*) GROUP BY status` (`APPROVED` vs `BLOCKED`).
+    *   [x] Escribir consulta: `SUM(amount) GROUP BY product`.
+    *   [x] Medir tiempo de respuesta de cada consulta con el dataset de prueba generado.
+    *   [x] Guardar los queries en un archivo `analytics.sql` para referencia futura.
 
 ---
 
