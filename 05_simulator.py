@@ -23,10 +23,18 @@ def main():
     parser.add_argument("--total", type=int, default=20)
     args = parser.parse_args()
     delay = 1 / args.rate
-    for _ in range(args.total):
-        order = generate_order()
-        response = requests.post(URL, json=order)
-        print(response.status_code, response.json())
-        time.sleep(delay)
+    if args.total > 0:
+        for _ in range(args.total):
+            order = generate_order()
+            response = requests.post(URL, json=order)
+            print(response.status_code, response.json())
+            time.sleep(delay)
+    else:
+        print("Simulador en ejecución INFINITA (Ctrl+C para cancelar)...")
+        while True:
+            order = generate_order()
+            response = requests.post(URL, json=order)
+            print(response.status_code, response.json())
+            time.sleep(delay)
 if __name__ == "__main__":
     main()
