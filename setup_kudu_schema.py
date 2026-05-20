@@ -12,22 +12,22 @@ def main():
         
     spark.sparkContext.setLogLevel("ERROR")
     
+    # Fijado a 127.0.0.1 para alinearse con el docker-compose corregido
     kudu_master = "127.0.0.1:7051"
     table_name = "orders"
     
     print(f"Conectando al Kudu Master en {kudu_master}...")
 
-    # Tomado de : https://docs.cloudera.com/runtime/7.3.1/kudu-development/topics/kudu-integration-with-spark.html
     sc = spark.sparkContext
     jvm = sc._jvm
     kudu_context = jvm.org.apache.kudu.spark.kudu.KuduContext(kudu_master, sc._jsc.sc())
     
     if kudu_context.tableExists(table_name):
-        # Tabla ya existe 
+        print("La tabla ya existe. Omitiendo creacion.")
         return
     
     schema = StructType([
-        StructField("order_id", StringType(), False),  # PK no puede ser nulo
+        StructField("order_id", StringType(), False),
         StructField("user_id", StringType(), True),
         StructField("country_code", StringType(), True),
         StructField("product", StringType(), True),
@@ -40,13 +40,10 @@ def main():
     
     print(f"Configurando Hash Partitioning sobre 'order_id' en 3 buckets...")
     options = jvm.org.apache.kudu.client.CreateTableOptions()
-    
     options.setNumReplicas(1)
-    
     cols_list = jvm.java.util.ArrayList()
     cols_list.add("order_id")
     options.addHashPartitions(cols_list, 3)
-    
     pk_seq = jvm.scala.collection.JavaConverters.asScalaBufferConverter(cols_list).asScala().toSeq()
     
     print(f"Creando tabla '{table_name}'...")

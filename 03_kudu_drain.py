@@ -1,21 +1,13 @@
-import json
-import time
 import sys
-import datetime
-from confluent_kafka import Consumer, KafkaError
 from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, from_json
 from pyspark.sql.types import StructType, StructField, StringType, DoubleType
+import pyspark
 
-KAFKA_BROKER  = "localhost:9092"
-INPUT_TOPIC   = "orders-processed"
-KUDU_MASTER   = "127.0.0.1:7051"
-TABLE_NAME    = "orders"
-
-
-# Estos datos para la reparticion del batch es trivial ya que 
-# 
-BATCH_SIZE    = 50
-BATCH_TIMEOUT = 3.0
+KAFKA_BROKER = "localhost:9092"
+INPUT_TOPIC  = "orders-processed"
+KUDU_MASTER  = "127.0.0.1:7051"
+TABLE_NAME   = "orders"
 
 SCHEMA = StructType([
     StructField("order_id",     StringType(), False),
@@ -27,89 +19,48 @@ SCHEMA = StructType([
     StructField("timestamp",    StringType(), True),
 ])
 
-def flush(spark, buffer: list) -> None:
-    try:
-        df = spark.createDataFrame(buffer, SCHEMA)
-        df.write \
-            .format("org.apache.kudu.spark.kudu") \
-            .option("kudu.master",    KUDU_MASTER) \
-            .option("kudu.table",     TABLE_NAME) \
-            .option("kudu.operation", "upsert") \
-            .mode("append") \
-            .save()
-        print(f"Lote de {len(buffer)} órdenes persistido en Kudu.")
-    except Exception as e:
-        print(f"Error al escribir en Kudu: {e}")
-    finally:
-        buffer.clear()
-
-def build_consumer() -> Consumer:
-    return Consumer({
-        "bootstrap.servers": KAFKA_BROKER,
-        "group.id":          "kudu_drainer_group",
-        "auto.offset.reset": "earliest",
-        "enable.auto.commit": True,
-    })
-
 def main():
-    print("Iniciando Kudu Drainer...")
+    print("Iniciando Kudu Structured Streaming Drainer...")
+    
+    pyspark_version = pyspark.__version__
+    print(f"Detectada version local de PySpark: {pyspark_version}")
 
     spark = SparkSession.builder \
         .appName("KuduDrainer") \
-        .config("spark.jars.packages", "org.apache.kudu:kudu-spark3_2.12:1.17.0") \
-        .config("spark.driver.host", "localhost") \
+        .config("spark.jars.packages", f"org.apache.kudu:kudu-spark3_2.12:1.17.0,org.apache.spark:spark-sql-kafka-0-10_2.12:{pyspark_version}") \
+        .config("spark.driver.host", "127.0.0.1") \
+        .config("spark.driver.bindAddress", "127.0.0.1") \
         .getOrCreate()
+        
     spark.sparkContext.setLogLevel("ERROR")
 
-    consumer = build_consumer()
-    consumer.subscribe([INPUT_TOPIC])
-    print(f"Consumer suscrito a {INPUT_TOPIC}")
-    buffer: list = []
-    last_flush = time.time()
+    # 1. Leer flujo desde Kafka
+    kafka_df = spark.readStream \
+        .format("kafka") \
+        .option("kafka.bootstrap.servers", KAFKA_BROKER) \
+        .option("subscribe", INPUT_TOPIC) \
+        .option("startingOffsets", "latest") \
+        .load()
 
-    try:
-        while True:
-            msg = consumer.poll(0.5)
+    # 2. Parsear JSON y filtrar solo APPROVED
+    processed_df = kafka_df \
+        .selectExpr("CAST(value AS STRING) as json_payload") \
+        .select(from_json(col("json_payload"), SCHEMA).alias("data")) \
+        .select("data.*") \
+        .filter(col("status") == "APPROVED")   # RF-11
 
-            if msg is not None and not msg.error():
-                try:
-                    order = json.loads(msg.value().decode("utf-8"))
+    print(f"Escribiendo flujo de streaming directamente en la tabla Kudu '{TABLE_NAME}'...")
 
-                    status_val = str(order.get("status", "UNKNOWN"))
+    query = processed_df.writeStream \
+        .format("org.apache.kudu.spark.kudu") \
+        .option("kudu.master", KUDU_MASTER) \
+        .option("kudu.table", TABLE_NAME) \
+        .option("kudu.operation", "upsert") \
+        .outputMode("update") \
+        .option("checkpointLocation", "/tmp/kudu_drain_checkpoint") \
+        .start()
 
-                    buffer.append({
-                        "order_id":     str(order["order_id"]),
-                        "user_id":      str(order.get("user_id", "")),
-                        "country_code": str(order.get("country_code", "")),
-                        "product":      str(order.get("product", "")),
-                        "amount":       float(order.get("amount", 0.0)),
-                        "status":       status_val,
-                        "timestamp":    str(order.get(
-                            "timestamp",
-                            datetime.datetime.now(datetime.UTC).isoformat()
-                        )),
-                    })
-
-                except Exception as parse_err:
-                    print(f"Error parseando mensaje: {parse_err}")
-
-            elif msg is not None and msg.error():
-                if msg.error().code() != KafkaError._PARTITION_EOF:
-                    print(f"Kafka error: {msg.error()}")
-
-            elapsed = time.time() - last_flush
-            if buffer and (len(buffer) >= BATCH_SIZE or elapsed >= BATCH_TIMEOUT):
-                flush(spark, buffer)
-                last_flush = time.time()
-
-    except KeyboardInterrupt:
-        print("Deteniendo drainer...")
-        if buffer:
-            flush(spark, buffer)
-    finally:
-        consumer.close()
-        spark.stop()
-        print("Recursos cerrados.")
+    query.awaitTermination()
 
 if __name__ == "__main__":
     main()
