@@ -6,26 +6,22 @@ pkill -f "03_kudu_drain" 2>/dev/null
 pkill -f "06_analytics_refresh" 2>/dev/null
 pkill -f "05_simulator" 2>/dev/null
 
-# Setup WSL hosts (solo si no existe)
-if ! grep -q "kudu-tserver-1" /etc/hosts; then
-    echo "127.0.0.1 kudu-master-1 kudu-tserver-1 kudu-tserver-2" | sudo tee -a /etc/hosts
-fi
-
 # Limpiar checkpoints corruptos de Spark
 rm -rf /tmp/kudu_drain_checkpoint
 
 export PYTHONUNBUFFERED=1
 
-# 1. IP temporal para levantar Docker
-export KUDU_QUICKSTART_IP=$(ip route get 1.1.1.1 2>/dev/null | awk '{print $7}')
-export KUDU_QUICKSTART_IP=${KUDU_QUICKSTART_IP:-127.0.0.1}
+# 1. Reiniciar Docker Compose limpiando volumenes antiguos
+echo "Reiniciando servicios Docker y limpiando volumenes de Kudu..."
+docker compose down -v
 docker compose up -d
 
-# 2. Esperar y leer IP real del contenedor master
-echo "Esperando 40 segundos para que Kudu arranque..."
-sleep 40
-export KUDU_QUICKSTART_IP=$(docker inspect investigacion-bd2-kudu-master-1-1 | grep '"IPAddress"' | tail -1 | awk -F'"' '{print $4}')
-echo "IP Kudu Master: $KUDU_QUICKSTART_IP"
+# 2. Esperar de forma determinista que el Master y los 2 TServers esten listos
+echo "Esperando a que Kudu Master y los 2 Tablet Servers esten listos..."
+while ! curl -s http://127.0.0.1:8051/tablet-servers | grep -q "There are 2 registered tablet servers."; do
+    sleep 2
+done
+echo "¡Kudu listo con 2 Tablet Servers registrados!"
 
 # 3. Inicializar esquema
 .venv/bin/python setup_kudu_schema.py

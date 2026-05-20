@@ -11,7 +11,8 @@ def build_spark() -> SparkSession:
     spark = SparkSession.builder \
         .appName("AnalyticsRefresh") \
         .config("spark.jars.packages", "org.apache.kudu:kudu-spark3_2.12:1.17.0") \
-        .config("spark.driver.host", "localhost") \
+        .config("spark.driver.host", "127.0.0.1") \
+        .config("spark.driver.bindAddress", "127.0.0.1") \
         .getOrCreate()
     spark.sparkContext.setLogLevel("ERROR")
     return spark

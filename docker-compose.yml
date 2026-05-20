@@ -1,21 +1,23 @@
-version: "3.8"
-
 services:
   kudu-master-1:
     image: apache/kudu:${KUDU_QUICKSTART_VERSION:-latest}
     ports:
       - "127.0.0.1:7051:7051"
       - "127.0.0.1:8051:8051"
+      - "127.0.0.1:7050:7050"
+      - "127.0.0.1:8050:8050"
+      - "127.0.0.1:7150:7150"
+      - "127.0.0.1:8150:8150"
     command: [ "master" ]
     volumes:
       - kudu-master-1:/var/lib/kudu
     environment:
-      - KUDU_MASTERS=kudu-master-1:7051
+      - KUDU_MASTERS=127.0.0.1:7051
       - "MASTER_ARGS=--fs_wal_dir=/var/lib/kudu/master \
         --rpc_bind_addresses=0.0.0.0:7051 \
-        --rpc_advertised_addresses=localhost:7051 \
+        --rpc_advertised_addresses=127.0.0.1:7051 \
         --webserver_port=8051 \
-        --webserver_advertised_addresses=localhost:8051 \
+        --webserver_advertised_addresses=127.0.0.1:8051 \
         --webserver_doc_root=/opt/kudu/www \
         --stderrthreshold=0 \
         --use_hybrid_clock=false \
@@ -26,21 +28,19 @@ services:
 
   kudu-tserver-1:
     image: apache/kudu:${KUDU_QUICKSTART_VERSION:-latest}
+    network_mode: "service:kudu-master-1"
     depends_on:
       - kudu-master-1
-    ports:
-      - "127.0.0.1:7050:7050"
-      - "127.0.0.1:8050:8050"
     command: [ "tserver" ]
     volumes:
       - kudu-tserver-1:/var/lib/kudu
     environment:
-      - KUDU_MASTERS=kudu-master-1:7051
+      - KUDU_MASTERS=127.0.0.1:7051
       - "TSERVER_ARGS=--fs_wal_dir=/var/lib/kudu/tserver \
         --rpc_bind_addresses=0.0.0.0:7050 \
-        --rpc_advertised_addresses=localhost:7050 \
+        --rpc_advertised_addresses=127.0.0.1:7050 \
         --webserver_port=8050 \
-        --webserver_advertised_addresses=localhost:8050 \
+        --webserver_advertised_addresses=127.0.0.1:8050 \
         --webserver_doc_root=/opt/kudu/www \
         --stderrthreshold=0 \
         --use_hybrid_clock=false \
@@ -50,21 +50,19 @@ services:
 
   kudu-tserver-2:
     image: apache/kudu:${KUDU_QUICKSTART_VERSION:-latest}
+    network_mode: "service:kudu-master-1"
     depends_on:
       - kudu-master-1
-    ports:
-      - "127.0.0.1:7150:7150"
-      - "127.0.0.1:8150:8150"
     command: [ "tserver" ]
     volumes:
       - kudu-tserver-2:/var/lib/kudu
     environment:
-      - KUDU_MASTERS=kudu-master-1:7051
+      - KUDU_MASTERS=127.0.0.1:7051
       - "TSERVER_ARGS=--fs_wal_dir=/var/lib/kudu/tserver \
         --rpc_bind_addresses=0.0.0.0:7150 \
-        --rpc_advertised_addresses=localhost:7150 \
+        --rpc_advertised_addresses=127.0.0.1:7150 \
         --webserver_port=8150 \
-        --webserver_advertised_addresses=localhost:8150 \
+        --webserver_advertised_addresses=127.0.0.1:8150 \
         --webserver_doc_root=/opt/kudu/www \
         --stderrthreshold=0 \
         --use_hybrid_clock=false \
